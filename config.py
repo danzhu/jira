@@ -23,9 +23,6 @@ DETAILS_FORMAT = """
 
 {issue.description}
 """
-TITLE_FORMAT  = '\n{style.BRIGHT}{fore.YELLOW}{name}: {style.RESET_ALL}{count}'
+TITLE_FORMAT  = '{style.BRIGHT}{fore.YELLOW}{name}: {style.RESET_ALL}{count}'
 PREFIX_FORMAT = '{style.BRIGHT}{fore.BLACK}{browse}{fore.GREEN}{issue.key:<10}{fore.RED}{issue.sign}{style.RESET_ALL}  '
-SUMMARY_FORMAT = """
-Total: {total}
-Updated: {updated:%I:%M %p}
-"""
+SUMMARY_FORMAT = "Updated: {updated:%I:%M %p}"

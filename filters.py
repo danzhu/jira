@@ -14,28 +14,39 @@ SUMMARY   = '{issue.summary}'
 
 
 class Filter:
-    NAME = 'Filter'
-    FORMAT = STATUS + ISSUETYPE + PRIORITY + UPDATED + ASSIGNEE + SUMMARY
-    REVERSE = True
+    NAME       = 'Filter'
+    FORMAT     = STATUS + ISSUETYPE + PRIORITY + UPDATED + ASSIGNEE + SUMMARY
+    REVERSE    = True
+    HIDE_EMPTY = True
 
     def update(self, issues):
         self.matches = [i for i in issues if self.filter(i)]
-        self.matches.sort(key=self.sort, reverse=self.REVERSE)
+
+        displays = [i for i in self.matches if self.detail(i)]
+        self.displays = sorted(displays, key=self.sort, reverse=self.REVERSE)
 
     def display(self):
-        if len(self.matches) == 0:
+        if self.HIDE_EMPTY and len(self.matches) == 0:
             return
 
         display(config.TITLE_FORMAT, name=self.NAME, count=len(self.matches))
 
-        for issue in self.matches:
+        if len(self.displays) == 0:
+            return
+
+        for issue in self.displays:
             display(config.PREFIX_FORMAT + self.FORMAT, issue=issue, browse=config.URL + 'browse/')
+
+        display()
+
+    def sort(self, issue):
+        return issue.updated
 
     def filter(self, i):
         return True
 
-    def sort(self, issue):
-        return issue.updated
+    def detail(self, i):
+        return True
 
 
 class Action(Filter):
@@ -43,7 +54,7 @@ class Action(Filter):
     FORMAT = STATUS + SUMMARY
 
     def filter(self, i):
-        return i.status in ['Merge Needed', 'Development - Passed Review']
+        return i.status in ['Merge Needed', 'Development - Passed Review'] and i.assigned
 
     def sort(self, issue):
         return issue.status
@@ -88,32 +99,42 @@ class Pending(Filter):
 
     def filter(self, i):
         if i.status in [
-                'Development - Passed Review',
-                'Merge Needed',
+                'QA Smoke Test',
                 'Done'
                 ]:
             return False
 
+        # if either unassigned or assigned to someone else
         if i.assigned != True:
             return True
 
+        # or assigned to me but not in these status
         return i.status not in [
                 'Estimate',
                 'Development - Open',
-                'Development - In Progress'
+                'Development - In Progress',
+                'Development - Passed Review',
+                'Merge Needed'
                 ]
 
 
-class Done(Filter):
-    NAME = 'Done'
-
-    def display(self):
-        # don't display actual issues, just number of matches
-        # (don't ignore 0 length either)
-        display(config.TITLE_FORMAT, name=self.NAME, count=len(self.matches))
+class Smoke(Filter):
+    NAME = 'Smoke Test'
+    FORMAT = ASSIGNEE + SUMMARY
 
     def filter(self, i):
-        return i.status in ['Done']
+        return i.status in ['QA Smoke Test']
+
+    def detail(self, i):
+        return i.updated > i.lastViewed
 
 
-filters = [Action(), Progress(), Open(), Estimate(), Pending()]
+class Total(Filter):
+    NAME = 'Total'
+    HIDE_EMPTY = False
+
+    def detail(self, i):
+        return False
+
+
+filters = [Action(), Progress(), Open(), Estimate(), Pending(), Smoke(), Total()]

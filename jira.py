@@ -29,6 +29,7 @@ def request(action):
         except KeyboardInterrupt:
             display()
             return None
+        display()
 
     url = '{}rest/api/2/{}'.format(config.URL, action)
 
@@ -83,7 +84,7 @@ def do(action, args=''):
             fil.display()
 
         updated = datetime.today()
-        display(config.SUMMARY_FORMAT, total=len(issues), updated=updated)
+        display(config.SUMMARY_FORMAT, updated=updated)
 
     elif action == 'print':
         if updated is None:
@@ -93,7 +94,7 @@ def do(action, args=''):
         for fil in filters:
             fil.display()
 
-        display(config.SUMMARY_FORMAT, total=len(issues), updated=updated)
+        display(config.SUMMARY_FORMAT, updated=updated)
 
     elif action == 'display':
         issue = findIssue(args)
